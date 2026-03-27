@@ -22,6 +22,31 @@
             };
         }
 
+        public static UserDto GetInvalidUser()
+        {
+            return new UserDto
+            {
+                Email = "nonexistent@example.com",
+                Password = "wrongpassword"
+            };
+        }
+        public static UserDto GetExistingUser()
+        {
+            return new UserDto
+            {
+                Name = "Existing User",
+                Email = "testuser@example.com",
+                Password = "password123"
+            };
+        }
+        public static UserDto GetValidUser()
+        {
+            return new UserDto
+            {
+                Email = "testuser@example.com",
+                Password = "password123"
+            };
+        }
         public static UserDto GetRegistrationUser()
         {
             string uniqueId = DateTime.Now.ToString("yyyyMMddHHmmss");

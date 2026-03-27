@@ -1,8 +1,7 @@
 ﻿using OpenQA.Selenium;
 using System.Collections.Generic;
 using System.Linq;
-using System;
-using System.Threading;
+using Ecommerce.Infrastructure.DTOs;
 
 namespace Ecommerce.Infrastructure.Pages
 {
@@ -10,39 +9,42 @@ namespace Ecommerce.Infrastructure.Pages
     {
         public SearchPage(IWebDriver driver) : base(driver) { }
 
-        private By SearchInput => By.Id("search_product");
-        private By SubmitSearch => By.Id("submit_search");
-        private By ProductNamesText => By.XPath("//div[@class='productinfo text-center']//p");
+        private By SearchInput => By.XPath("//input[@id='search_product']");
+        private By SubmitSearch => By.XPath("//button[@id='submit_search']");
+        private By ResultsTitle => By.XPath("//h2[contains(@class, 'title') and text()='Searched Products']");
+        private By ProductItems => By.XPath("//div[@class='single-products']");
+        private By ProductNames => By.XPath("//div[@class='productinfo text-center']//p");
+        private By ProductPrices => By.XPath("//div[@class='productinfo text-center']//h2");
+        private By ViewProductBtn => By.XPath("//a[text()='View Product']");
+        private By SidebarTitle => By.XPath("//div[@class='left-sidebar']/h2");
+        private By CategoryWomen => By.XPath("//a[@href='#Women']");
+        private By CategoryMen => By.XPath("//a[@href='#Men']");
+        private By CategoryKids => By.XPath("//a[@href='#Kids']");
 
-        public void PerformSearch(string term)
+        public void PerformSearch(SearchOptionsDto options)
         {
             WaitForPageToLoad();
-
-            var input = Wait.Until(SeleniumExtras.WaitHelpers.ExpectedConditions.ElementExists(SearchInput));
-
-            ForceType(SearchInput, term);
+            ForceType(SearchInput, options.SearchTerm);
             ForceClick(SubmitSearch);
-
             Wait.Until(d => d.Url.Contains("search"));
-
-            Wait.Until(d => {
-                var elements = d.FindElements(ProductNamesText);
-                return elements.Count > 0 && !string.IsNullOrWhiteSpace(elements[0].Text);
-            });
         }
 
-        public List<string> GetProductNames()
+        public List<ProductDto> GetDisplayedProducts()
         {
-            Thread.Sleep(1500);
+            KillPopups();
+            var names = Driver.FindElements(ProductNames);
+            var prices = Driver.FindElements(ProductPrices);
 
-            var elements = Driver.FindElements(ProductNamesText);
-
-            var names = elements
-                .Select(e => e.Text.Trim())
-                .Where(t => !string.IsNullOrEmpty(t))
-                .ToList();
-
-            return names;
+            var results = new List<ProductDto>();
+            for (int i = 0; i < names.Count; i++)
+            {
+                results.Add(new ProductDto
+                {
+                    Name = names[i].Text.Trim(),
+                    Price = prices[i].Text.Trim()
+                });
+            }
+            return results;
         }
     }
 }
